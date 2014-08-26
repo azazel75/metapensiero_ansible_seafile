@@ -1,0 +1,32 @@
+---
+seafile:
+  dirs:
+    install: "{{seafile_install_dir}}"
+    seafile: "{{seafile_install_dir}}/seafile"
+    seahub: "{{seafile_install_dir}}/seahub"
+    bin: "{{seafile_install_dir}}/seafile/bin"
+    ccnet: "{{seafile_data_dir}}/ccnet"
+    seafile_data: "{{seafile_data_dir}}/files"
+    seafdav: "{{seafile_top_dir}}/conf"
+    
+seafile_env_paths:
+  PYTHONPATH:
+    # from EnvManager
+    - "{{seafile.dirs.install}}/pro/python"
+    - "{{seafile.dirs.seahub}}/thirdpart"
+    - "{{seafile.dirs.seafile}}/lib/python2.6/site-packages"
+    - "{{seafile.dirs.seafile}}/lib64/python2.6/site-packages"
+    - "{{seafile.dirs.seafile}}/lib/python2.7/site-packages"
+    - "{{seafile.dirs.seafile}}/lib64/python2.7/site-packages"
+  LD_LIBRARY_PATH:
+    - "{{seafile.dirs.seafile}}/lib"
+    - "{{seafile.dirs.seafile}}/lib64"
+
+seafile_bin_env:
+  LD_LIBRARY_PATH: "{{seafile_env_paths.LD_LIBRARY_PATH|join(':')}}:{{ansible_env.LD_LIBRARY_PATH|d('')}}"
+seafile_python_env:
+  CCNET_CONF_DIR: "{{seafile.dirs.ccnet}}"
+  SEAFILE_CONF_DIR: "{{seafile.dirs.seafile_data}}"
+  PYTHONPATH: "{{seafile_env_paths.PYTHONPATH|join(':')}}:{{ansible_env.PYTHONPATH|d('')}}"
+
+seafile_download_url: "https://bitbucket.org/haiwen/seafile/downloads/seafile-server_{{config.version}}_{{ansible_userspace_architecture}}.tar.gz"

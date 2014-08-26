@@ -1,0 +1,5 @@
+---
+seafile_db_names:
+  ccnet: pgsql
+  seafile: pgsql
+  seahub: postgresql_psycopg2

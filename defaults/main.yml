@@ -1,0 +1,36 @@
+---
+local_root: "{{lookup('env','VIRTUAL_ENV') or lookup('env', 'PWD')}}"
+
+config:
+  version: 3.1.3
+  orgname: organization
+  base: /srv
+  data: /var/lib/seafile
+  admin:
+    name: adminuser
+    email: admin@example.com
+  database:
+    type: postgresql
+    user: seafile
+    host: localhost
+    port: 5432
+    names:
+      ccnet: ccnet_db
+      seafile: seafile_db
+      seahub: seahub_db
+  ccnet:
+    server_name: my-seafile
+    port: 8001
+    name: file.arstecnica.it
+    host: file.arstecnica.it
+  seafile:
+    port: 12001
+    fileserver_port: 8082
+
+credentials_dir: "{{local_root}}/credentials/{{inventory_hostname}}"
+    
+seafile_top_dir: "{{config.base}}/{{config.orgname}}"
+seafile_install_dir: "{{seafile_top_dir}}/seafile-server-{{config.version}}"
+seafile_data_dir: "{{config.data}}"
+seafile_secret_key: "{{lookup('password', credentials_dir + '/seahub_secret_key length=50')}}"
+seafile_db_password: "{{lookup('password', credentials_dir + '/db_' + config.seafile.database.user)}}"

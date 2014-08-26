@@ -1,0 +1,19 @@
+---
+- name: create seafile user
+  postgresql_user: >
+    name={{config.database.user}}
+    password={{seafile_db_password}}
+    role_attr_flags=CREATEDB,NOSUPERUSER
+  su: yes
+  su_user: postgres
+
+- name: create seafile databases
+  postgresql_db: >
+    name={{item.value}}
+    owner={{config.database.user}}
+    encoding=utf8
+    template=template0
+  with_dict: config.database.names
+  su: yes
+  su_user: postgres
+

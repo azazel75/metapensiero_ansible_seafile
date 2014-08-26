@@ -1,0 +1,125 @@
+---
+- name: create base dir
+  file: path={{seafile_top_dir}} state=directory
+  
+- name: download tarball from {{seafile_download_url}}
+  get_url: >
+    validate_certs=no
+    url={{seafile_download_url}}
+    dest=/tmp/seafile.tgz
+    
+- name: unpack sources in {{seafile_top_dir}}
+  unarchive: src=/tmp/seafile.tgz copy=no dest={{seafile_top_dir}}
+    creates={{seafile_install_dir}}
+
+- include_vars: "{{config.database.type}}.yml"
+
+- include: postgresql.yml
+  when: config.database.type == 'postgresql'
+  
+- name: create needed dirs
+  file: name={{item}} state=directory
+  with_items:
+    - "{{config.data}}"
+    - "{{seafile.dirs.seafile_data}}"
+    - "{{seafile.dirs.seafile_data}}/library-template" #docs
+    - "{{seafile.dirs.seafdav}}"
+    # - "{{seafile.dirs.ccnet}}" ccnet-init fails if already present
+
+- name: run seaf-server-init
+  command: >
+    "{{seafile.dirs.bin}}/seaf-server-init"
+    --seafile-dir {{seafile.dirs.seafile_data}}
+    --port {{config.seafile.port}}
+    --fileserver-port {{config.seafile.fileserver_port}}
+    creates="{{seafile.dirs.seafile_data}}/seafile.conf"
+  environment: seafile_bin_env
+
+- name: fill in seafile.conf
+  ini_file: >
+    dest="{{seafile.dirs.seafile_data}}/seafile.conf"
+    section=database
+    state=present
+    option={{item.key}}
+    value={{item.value}}
+  with_dict:
+    type: "{{seafile_db_names.seafile}}"
+    host: "{{config.database.host}}"
+    port: "{{config.database.port}}"
+    user: "{{config.database.user}}"
+    password: "{{seafile_db_password}}"
+    db_name: "{{config.database.names.seafile}}"
+    connection_charset: utf8
+  
+- name: run ccnet-init
+  command: >
+    "{{seafile.dirs.bin}}/ccnet-init"
+    --config-dir {{seafile.dirs.ccnet}}
+    --port {{config.ccnet.port}}
+    --host {{config.ccnet.host}}
+    --name {{config.ccnet.server_name}}
+    creates="{{seafile.dirs.ccnet}}/ccnet.conf"
+  environment: seafile_bin_env
+
+- name: fill in ccnet.conf
+  ini_file: >
+    dest="{{seafile.dirs.ccnet}}/ccnet.conf"
+    section=Database
+    state=present
+    option={{item.key}}
+    value={{item.value}}
+  with_dict:
+    ENGINE: "{{seafile_db_names.ccnet}}"
+    HOST: "{{config.database.host}}"
+    PORT: "{{config.database.port}}"
+    USER: "{{config.database.user}}"
+    PASSWD: "{{seafile_db_password}}"
+    DB: "{{config.database.names.ccnet}}"
+    CONNECTION_CHARSET: utf8
+  
+- name: create seahub settings.py
+  template: src=seahub_settings.py.j2
+    dest="{{seafile_top_dir}}/seahub_settings.py"
+
+- name: copy documentation
+  shell: cp {{seafile.dirs.seafile}}/docs/*.doc
+    "{{seafile.dirs.seafile_data}}/library-template"
+
+- name: generate SeafDav configuration file
+  template: src=seafdav.conf.j2
+    dest="{{seafile.dirs.seafdav}}/seafdav.conf"
+
+- name: create a seafile.ini into ccnet conf dir 
+  shell: echo "{{seafile.dirs.seafile_data}}" > {{seafile.dirs.ccnet}}/seafile.ini
+- name: create seafile server symlink
+  file: path="{{seafile_top_dir}}/seafile-server-latest"
+    src="{{seafile_install_dir}}"
+    state=link
+
+- name: create a generic runner for commands
+  template: src=sea-cmd-runner.j2
+    dest="{{seafile_top_dir}}/seacmdrunner"
+    mode=0700
+
+- name: execute djangos seahub syncdb to create tables
+  command: python2.7 manage.py syncdb 
+    chdir={{seafile.dirs.seahub}}
+  environment: seafile_python_env
+
+- name: prepare tailored seafile start scripts
+  template: src="{{item}}.j2"
+    dest="{{seafile_top_dir}}/{{item}}"
+    mode=0755
+  with_items:
+    - seafile.sh
+    - seahub.sh
+    - seaf-fuse.sh
+    - seaf-gc.sh
+
+- name: add admin user
+  command: >
+    python2.7 manage.py createsuperuser
+    --username {{config.admin.name}}
+    --email {{config.admin.email}}
+    chdir={{seafile.dirs.seahub}}
+  environment: seafile_python_env

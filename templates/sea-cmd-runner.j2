@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+{% for k,v  in seafile_bin_env.items() %}
+export {{k}}={{v}}
+{% endfor %}
+{% for k,v  in seafile_python_env.items() %}
+export {{k}}={{v}}
+{% endfor %}
+exec $@

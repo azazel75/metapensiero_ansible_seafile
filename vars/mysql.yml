@@ -1,0 +1,5 @@
+---
+seafile_db_names:
+  ccnet: mysql
+  seafile: mysql
+  seahub: mysql

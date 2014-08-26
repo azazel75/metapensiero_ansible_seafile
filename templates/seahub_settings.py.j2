@@ -1,0 +1,17 @@
+SECRET_KEY = '{{seafile_secret_key}}'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.{{seafile_db_names.seahub}}',
+        'NAME': '{{config.database.names.seahub}}',
+        'USER': '{{config.database.user}}',
+        'PASSWORD': '{{seafile_db_password}}',
+        'HOST': '{{config.database.host}}',
+        'PORT': '{{config.database.port}}',
+        {% if config.database.type == 'mysql' %}
+        'OPTIONS': {
+            'init_command': 'SET storage_engine=INNODB',
+        }
+        {% endif %}
+    }
+}
