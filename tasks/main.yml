@@ -77,6 +77,10 @@
     DB: "{{config.database.names.ccnet}}"
     CONNECTION_CHARSET: utf8
   
+
+- include: nginx.yml
+  when: config.frontend is defined and config.frontend == 'nginx'
+
 - name: create seahub settings.py
   template: src=seahub_settings.py.j2
     dest="{{seafile_top_dir}}/seahub_settings.py"

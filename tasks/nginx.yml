@@ -1,0 +1,24 @@
+- name: tweak ccnet service protoo if the https is exposed
+  ini_file: >
+    dest="{{seafile.dirs.ccnet}}/ccnet.conf"
+    section=General
+    state=present
+    option=SERVICE_URL
+    value={{config.ccnet.protocol|default('http')}}://{{config.ccnet.host}}
+  when: config.frontend is defined 
+
+- name: generate nginx configuration
+  template: src=nginx.conf.j2
+    dest="/etc/nginx/sites-enabled/{{config.ccnet.host}}.conf"
+  notify: restart Nginx http server
+
+- name: fill fastcgi in seafile.conf
+  ini_file: >
+    dest="{{seafile.dirs.seafile_data}}/seafile.conf"
+    section=seahub
+    state=present
+    option={{item.key}}
+    value={{item.value}}
+  with_dict:
+    port: 8000
+    fastcgi: true

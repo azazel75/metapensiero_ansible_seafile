@@ -1,0 +1,3 @@
+---
+- include: nginx.yml
+  when: config.frontend is defined and config.frontend == 'nginx'

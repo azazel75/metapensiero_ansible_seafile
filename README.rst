@@ -24,10 +24,12 @@ To be used with a config like::
         port: 8001
         name: file.example.com
         host: file.example.com
+        protocol: https
       seafile:
         port: 12001
         fileserver_port: 8082
-
+      frontend: nginx
+    
 The credentials (for db user, and seahub's SECRET_KEY) are by default
 stored in ``$PWD/credentials/{{inventory_hostname}}`` directory and
 can be specified by defining the following variables::
@@ -49,3 +51,4 @@ that are (currently) considered installed are:
 - postgresql-9.1
 - postgresql-contrib-9.1
 - python-flup
+- nginx

@@ -15,3 +15,7 @@ DATABASES = {
         {% endif %}
     }
 }
+
+{% if config.frontend is defined %}
+FILE_SERVER_ROOT = "{{config.ccnet.protocol|default('http')}}://{{config.ccnet.host}}/seafhttp"
+{% endif %}
