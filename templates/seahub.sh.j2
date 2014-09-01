@@ -2,10 +2,10 @@
 
 ### BEGIN INIT INFO
 # Provides:          seahub
-# Required-Start:    $local_fs $remote_fs $network
-# Required-Stop:     $local_fs
-# Default-Start:     1 2 3 4 5
-# Default-Stop:
+# Required-Start:    $local_fs $remote_fs $network $database
+# Required-Stop:     $local_fs $database
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
 # Short-Description: Starts Seahub
 # Description:       starts Seahub
 ### END INIT INFO
@@ -16,6 +16,11 @@ INSTALLPATH={{seafile_install_dir}}
 TOPDIR={{seafile_top_dir}}
 default_ccnet_conf_dir={{seafile.dirs.ccnet}}
 
+{% if config.frontend is defined and config.frontend  == 'nginx' %}
+start_fcgi=1
+{% else %}
+start_fcgi=0
+{% endif %}
 manage_py=${INSTALLPATH}/seahub/manage.py
 gunicorn_conf=${INSTALLPATH}/runtime/seahub.conf
 pidfile=${INSTALLPATH}/runtime/seahub.pid
@@ -218,7 +223,12 @@ function check_init_admin() {
 
 case $1 in
     "start" )
-        start_seahub;
+        if [ $start_fcgi == 1 ]; then
+            echo "Starting in FastCGI mode"
+            start_seahub_fastcgi;
+        else
+            start_seahub;
+        fi
         ;;
     "start-fastcgi" )
         start_seahub_fastcgi;
@@ -229,7 +239,12 @@ case $1 in
     "restart" )
         stop_seahub
         sleep 2
-        start_seahub
+        if [ $start_fcgi == 1 ]; then
+            echo "Starting in FastCGI mode"
+            start_seahub_fastcgi;
+        else
+            start_seahub;
+        fi
         ;;
     "restart-fastcgi" )
         stop_seahub

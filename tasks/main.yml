@@ -121,11 +121,24 @@
     - seahub.sh
     - seaf-fuse.sh
     - seaf-gc.sh
-
-- name: add admin user
-  command: >
-    python2.7 manage.py createsuperuser
-    --username {{config.admin.name}}
-    --email {{config.admin.email}}
-    chdir={{seafile.dirs.seahub}}
-  environment: seafile_python_env
+- name: copy admin config script to bin dir
+  copy: src=check_init_admin.py
+    dest="{{seafile_install_dir}}/bin/check_init_admin.py"
+    mode=0755
+- name: copy database facility definition to /etc/insserv.conf.d
+  template: src=database.insserv.conf.j2
+    dest=/etc/insserv.conf.d/database
+- name: create symlink into init.d
+  file: src="{{seafile_top_dir}}/seafile-server-latest/bin/{{item.key}}"
+    dest="/etc/init.d/{{item.value}}"
+    state=link
+  with_dict:
+    seafile.sh: seafile
+    seahub.sh: seahub
+- name: enable seafile daemon to start on boot and start it
+  service: name=seafile enabled=yes state=started
+- name: check if admin is present and add it if missing
+  command: python2.7 {{seafile_install_dir}}/bin/check_init_admin.py
+  environment: seafile_admin_check_env
+- name: enable seahub daemon to start on boot and start it
+  service: name=seahub enabled=yes state=started
