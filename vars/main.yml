@@ -8,7 +8,7 @@ seafile:
     ccnet: "{{seafile_data_dir}}/ccnet"
     seafile_data: "{{seafile_data_dir}}/files"
     seafdav: "{{seafile_top_dir}}/conf"
-    
+
 seafile_env_paths:
   PYTHONPATH:
     # from EnvManager

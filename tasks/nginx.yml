@@ -5,12 +5,16 @@
     state=present
     option=SERVICE_URL
     value={{config.ccnet.protocol|default('http')}}://{{config.ccnet.host}}
-  when: config.frontend is defined 
+  when: config.frontend is defined
+  tags:
+    - config
 
 - name: generate nginx configuration
   template: src=nginx.conf.j2
     dest="/etc/nginx/sites-enabled/{{config.ccnet.host}}.conf"
   notify: restart Nginx http server
+  tags:
+    - config
 
 - name: fill fastcgi in seafile.conf
   ini_file: >
@@ -22,3 +26,5 @@
   with_dict:
     port: 8000
     fastcgi: true
+  tags:
+    - config

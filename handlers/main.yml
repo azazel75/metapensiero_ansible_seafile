@@ -1,9 +1,18 @@
 ---
 - include: nginx.yml
   when: config.frontend is defined and config.frontend == 'nginx'
+  tags:
+    - config
+    - install
 
 - name: restart seafile
   service: name=seafile state=restarted
+  tags:
+    - config
+    - install
 
 - name: restart seahub 
   service: name=seahub state=restarted
+  tags:
+    - config
+    - install

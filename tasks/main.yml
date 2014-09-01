@@ -13,6 +13,8 @@
     creates={{seafile_install_dir}}
 
 - include_vars: "{{config.database.type}}.yml"
+  tags:
+    - config
 
 - include: postgresql.yml
   when: config.database.type == 'postgresql'
@@ -50,6 +52,11 @@
     password: "{{seafile_db_password}}"
     db_name: "{{config.database.names.seafile}}"
     connection_charset: utf8
+  tags:
+    - config
+  notify:
+    - restart seafile
+    - restart seahub
 
 - name: run ccnet-init
   command: >
@@ -76,6 +83,11 @@
     PASSWD: "{{seafile_db_password}}"
     DB: "{{config.database.names.ccnet}}"
     CONNECTION_CHARSET: utf8
+  tags:
+    - config
+  notify:
+    - restart seafile
+    - restart seahub
 
 - include: nginx.yml
   when: config.frontend is defined and config.frontend == 'nginx'
@@ -83,6 +95,10 @@
 - name: create seahub settings.py
   template: src=seahub_settings.py.j2
     dest="{{seafile_top_dir}}/seahub_settings.py"
+  tags:
+    - config
+  notify:
+    - restart seahub
 
 - name: copy documentation
   shell: cp {{seafile.dirs.seafile}}/docs/*.doc
@@ -91,9 +107,13 @@
 - name: generate SeafDav configuration file
   template: src=seafdav.conf.j2
     dest="{{seafile.dirs.seafdav}}/seafdav.conf"
+  tags:
+    - config
 
 - name: create a seafile.ini into ccnet conf dir
   shell: echo "{{seafile.dirs.seafile_data}}" > {{seafile.dirs.ccnet}}/seafile.ini
+  tags:
+    - config
 
 - name: create seafile server symlink
   file: path="{{seafile_top_dir}}/seafile-server-latest"
@@ -102,10 +122,15 @@
 
 - name: create a bin directory under seafile installation path
   file: path="{{seafile_install_dir}}/bin" state=directory
+  tags:
+    - install
+    
 - name: create a generic runner for commands
   template: src=sea-cmd-runner.j2
     dest="{{seafile_install_dir}}/bin/seacmdrunner"
     mode=0700
+  tags:
+    - install
 
 - name: execute djangos seahub syncdb to create tables
   command: python2.7 manage.py syncdb
@@ -121,13 +146,23 @@
     - seahub.sh
     - seaf-fuse.sh
     - seaf-gc.sh
+  tags:
+    - install
+    - config
+    
 - name: copy admin config script to bin dir
   copy: src=check_init_admin.py
     dest="{{seafile_install_dir}}/bin/check_init_admin.py"
     mode=0755
+  tags:
+    - install
+
 - name: copy database facility definition to /etc/insserv.conf.d
   template: src=database.insserv.conf.j2
     dest=/etc/insserv.conf.d/database
+  tags:
+    - install
+
 - name: create symlink into init.d
   file: src="{{seafile_top_dir}}/seafile-server-latest/bin/{{item.key}}"
     dest="/etc/init.d/{{item.value}}"
@@ -135,10 +170,21 @@
   with_dict:
     seafile.sh: seafile
     seahub.sh: seahub
+  tags:
+    - install
+
 - name: enable seafile daemon to start on boot and start it
   service: name=seafile enabled=yes state=started
+  tags:
+    - install
+
 - name: check if admin is present and add it if missing
   command: python2.7 {{seafile_install_dir}}/bin/check_init_admin.py
   environment: seafile_admin_check_env
+  tags:
+    - install
+
 - name: enable seahub daemon to start on boot and start it
   service: name=seahub enabled=yes state=started
+  tags:
+    - install
