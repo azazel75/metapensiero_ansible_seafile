@@ -19,3 +19,15 @@ DATABASES = {
 {% if config.frontend is defined %}
 FILE_SERVER_ROOT = "{{config.ccnet.protocol|default('http')}}://{{config.ccnet.host}}/seafhttp"
 {% endif %}
+
+# Enable or disable make group public
+{% if config.seahub.enable_public_group %}
+ENABLE_MAKE_GROUP_PUBLIC = True
+{% else %}
+ENABLE_MAKE_GROUP_PUBLIC = False
+{% endif %}
+
+EMAIL_HOST = '{{config.seahub.smtp.host}}'
+EMAIL_PORT = '{{config.seahub.smtp.port}}'
+DEFAULT_FROM_EMAIL = '{{config.seahub.smtp.from_email}}'
+SERVER_EMAIL = '{{config.seahub.smtp.from_email}}'

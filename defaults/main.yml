@@ -26,6 +26,12 @@ config:
   seafile:
     port: 12001
     fileserver_port: 8082
+  seahub:
+    enable_public_group: yes
+    smtp:
+      host: localhost
+      port: 25
+      from_email: seafile@example.com
 
 credentials_dir: "{{local_root}}/credentials/{{inventory_hostname}}"
     
