@@ -100,9 +100,11 @@
     src="{{seafile_install_dir}}"
     state=link
 
+- name: create a bin directory under seafile installation path
+  file: path="{{seafile_install_dir}}/bin" state=directory
 - name: create a generic runner for commands
   template: src=sea-cmd-runner.j2
-    dest="{{seafile_top_dir}}/seacmdrunner"
+    dest="{{seafile_install_dir}}/bin/seacmdrunner"
     mode=0700
 
 - name: execute djangos seahub syncdb to create tables
@@ -112,7 +114,7 @@
 
 - name: prepare tailored seafile start scripts
   template: src="{{item}}.j2"
-    dest="{{seafile_top_dir}}/{{item}}"
+    dest="{{seafile_install_dir}}/bin/{{item}}"
     mode=0755
   with_items:
     - seafile.sh
