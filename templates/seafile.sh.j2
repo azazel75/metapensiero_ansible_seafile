@@ -140,6 +140,7 @@ function restart_seafile_server () {
 case $1 in
     "start" )
         start_seafile_server;
+        sleep 3 # wait a little so that seahub starting finds all up
         ;;
     "stop" )
         stop_seafile_server;
