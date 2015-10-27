@@ -35,4 +35,4 @@ seafile_admin_check_env:
   SEAFILE_ADMIN_PASSWORD: "{{seafile_admin_password}}"
   SEAFILE_ADMIN_EMAIL: "{{config.admin_email}}"
 
-seafile_download_url: "https://bitbucket.org/haiwen/seafile/downloads/seafile-server_{{config.version}}_{{ansible_userspace_architecture}}.tar.gz"
+seafile_download_url: "https://bintray.com/artifact/download/seafile-org/seafile/seafile-server_{{config.version}}_{{ansible_userspace_architecture}}.tar.gz"
